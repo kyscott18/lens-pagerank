@@ -1,0 +1,11 @@
+{
+  "extends": "@saberhq/tsconfig/tsconfig.lib.json",
+  "compilerOptions": {
+    "lib": ["ES2015", "DOM"],
+    "outDir": "dist/esm/",
+    "rootDir": "src/",
+    "noEmit": false,
+    "resolveJsonModule": true
+  },
+  "include": ["./src"]
+}
