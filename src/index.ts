@@ -1,1 +1,1 @@
-export const maxChunk = 100;
+export const maxChunk = 200;

@@ -1,19 +1,27 @@
+import { chunk } from "lodash";
+
+import { maxChunk } from "..";
 import { getFollowing, getProfiles, getTotalProfiles } from "../apollo";
-import { numToId } from "./utils";
+import type { FollowingReturn, ProfilesReturn } from "../apollo/types";
+import { multipleQuery, numToId } from "./utils";
 
 export const pagerank = async (): Promise<void> => {
-  const testProfile = numToId(16);
-  console.log(testProfile);
-  const testAddress = "0x88a769db5055B046c9A45Db621978bbEC65c8c5b";
-
   const totalProfilesData = await getTotalProfiles();
-  console.log(totalProfilesData.data.globalProtocolStats.totalProfiles);
+  const profileIds = [
+    ...Array(totalProfilesData.data.globalProtocolStats.totalProfiles).keys(),
+  ].map((n) => numToId(n));
 
-  const profileData = await getProfiles([testProfile]);
-  console.log(profileData.data.profiles.items[0]);
+  const profileRequests = chunk(profileIds, maxChunk).map(
+    (pids) => () => getProfiles(pids)
+  );
+  const profileData = await multipleQuery<ProfilesReturn>(profileRequests);
+  const profiles = profileData.flatMap((pd) => pd.profiles.items);
+  const addresses = profiles.map((p) => p.ownedBy);
 
-  const followingData = await getFollowing(testAddress);
-  console.log(followingData.data.following.items);
+  const followingRequests = addresses.map((a) => () => getFollowing(a));
+  const followingData = await multipleQuery<FollowingReturn>(followingRequests);
+
+  followingData;
 };
 
 pagerank().catch((err) => {
